@@ -1,0 +1,5 @@
+# twitch-clipbot/utility.py: 10
+
+twitchio~=2.2.0
+requests~=2.27.1
+sty~=1.0.4
