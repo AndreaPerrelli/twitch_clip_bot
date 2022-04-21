@@ -27,8 +27,8 @@ def get_channel_id(channel_name):
     channel_id = 0
 
     data = response.json()
-    utility.print_toscreen(data)
-    utility.print_toscreen(data["access_token"])
+    utility.print_toscreen(data["data"][0]["id"])
+#    utility.print_toscreen(data["access_token"][0])
 
     result = "0"
 

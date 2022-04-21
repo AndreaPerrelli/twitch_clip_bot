@@ -26,6 +26,7 @@ class Bot(commands.Bot):
         print(f'Logged in as | {self.nick}')
 
     async def event_message(self, message):
+        global twitch_message_user
         # Messages with echo set to True are messages sent by the bot...
         # For now we just want to ignore them...
         if message.echo:
@@ -34,7 +35,7 @@ class Bot(commands.Bot):
         # Print the contents of our message to console...
         print(message.content)
         if message.content == "!clip":
-            twitch_message_user = message.author
+            twitch_message_user = str(message.author.name)
 
         # Since we have commands and are overriding the default `event_message`
         # We must let the bot know we want to handle and invoke our commands...
@@ -52,7 +53,7 @@ class Bot(commands.Bot):
         await create_clip(ctx)
 
     @commands.command()
-    async def kitty(self, ctx: commands.Context):
+    async def niniel(self, ctx: commands.Context):
         # Here we have a command hello, we can invoke our command with our prefix and command name
         # e.g ?hello
         # We can also give our commands aliases (different names) to invoke with.
@@ -66,11 +67,12 @@ class Bot(commands.Bot):
 async def create_clip(ctx):
     channel_id = twitch.get_channel_id(temp_initial_channels[0])
     clip_object = await twitch.create_clip(channel_id)
-    if clip_object is not None:
+    if clip_object != 0:
         clip_id = clip_object["id"]
         await proccess_clip(ctx, clip_id)
     else:
         print("Errore nel creare la clip")
+        await ctx.channel.send("Mi dispiace, " + twitch_message_user + ", non è stato possibile creare la clip")
 
 
 #	Thread for proccessing clip after X time
@@ -79,7 +81,7 @@ async def proccess_clip(ctx, clip_id):
     if await twitch.is_there_clip(clip_id):
         clip_url = "https://clips.twitch.tv/" + clip_id
 
-        await ctx.channel.send(clip_url)
+        await ctx.channel.send("Clip di " + twitch_message_user + " " + clip_url)
         utility.write_tofile(clip_url + "\n")
 
     else:
