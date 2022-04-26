@@ -62,25 +62,29 @@ class Bot(commands.Bot):
 async def create_clip(ctx):
     channel_id = twitch.get_channel_id(temp_initial_channels[0])
     clip_object = await twitch.create_clip(channel_id)
-    result_message = ""
     if clip_object != 0:
         clip_id = clip_object["id"]
-        await proccess_clip(ctx, clip_id)
+        clip_edit_url = clip_object["edit_url"]
+        await process_clip(ctx, clip_id, clip_edit_url)
     else:
         print("Errore nel creare la clip")
-        await ctx.channel.send("Mi dispiace, " + twitch_message_user + ", non è stato possibile creare la clip")
-        await send_clip_to_discord_channel("Non è stato possibile creare la clip")
+        message_to_the_chat = "Mi dispiace, " + twitch_message_user + ", non è stato possibile creare la clip"
+        message_to_discord = "Non è stato possibile creare la clip"
+        await ctx.channel.send(message_to_the_chat)
+        await send_clip_to_discord_channel(message_to_discord)
 
 
 #	Thread for proccessing clip after X time
-async def proccess_clip(ctx, clip_id):
+async def process_clip(ctx, clip_id, clip_edit_url):
     time.sleep(5)
     if await twitch.is_there_clip(clip_id):
         clip_url = "https://clips.twitch.tv/" + clip_id
-
-        await ctx.channel.send("Clip di " + twitch_message_user + " " + clip_url)
+        message_to_the_chat = "Clip di " + twitch_message_user + " " + clip_url
+        message_to_the_user = "Ciao! Questo è il link per editare la tua clip " + clip_edit_url
+        await ctx.channel.send(message_to_the_chat)
+        await ctx.author.send(message_to_the_user)
         utility.write_tofile(clip_url + "\n")
-        send_clip_to_discord_channel(clip_url)
+        await send_clip_to_discord_channel(clip_url)
 
     else:
         await ctx.channel.send("Sorry " + twitch_message_user + ", Twitch couldn't make the clip.")
