@@ -3,3 +3,4 @@
 twitchio~=2.2.0
 requests~=2.27.1
 sty~=1.0.4
+discord~=1.7.3

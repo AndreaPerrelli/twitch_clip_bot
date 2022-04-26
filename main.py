@@ -2,14 +2,17 @@
 #   All rights reserved.
 
 # bot.py
+import asyncio
 import os  # for importing env vars for the bot to use
 from twitchio.ext import commands
 import twitch
 import time
 import utility
+import discord_bot
 
 twitch_message_user = ""
 temp_initial_channels = str(os.environ['CHANNEL_NAME'])
+TOKEN = os.getenv('DISCORD_TOKEN')
 
 
 class Bot(commands.Bot):
@@ -49,30 +52,24 @@ class Bot(commands.Bot):
 
         # Send a hello back!
         # Sending a reply back to the channel is easy... Below is an example.
-        print("hello")
-        await create_clip(ctx)
-
-    @commands.command()
-    async def niniel(self, ctx: commands.Context):
-        # Here we have a command hello, we can invoke our command with our prefix and command name
-        # e.g ?hello
-        # We can also give our commands aliases (different names) to invoke with.
-
-        # Send a hello back!
-        # Sending a reply back to the channel is easy... Below is an example.
-        print("hello")
-        await ctx.send(f'è un poco scema')
+        if ctx.author.is_mod or ctx.author.is_subscriber:
+            print("hello")
+            await create_clip(ctx)
+        else:
+            print("l'utente " + ctx.author.name + " non ha i permessi per usare questo comando")
 
 
 async def create_clip(ctx):
     channel_id = twitch.get_channel_id(temp_initial_channels[0])
     clip_object = await twitch.create_clip(channel_id)
+    result_message = ""
     if clip_object != 0:
         clip_id = clip_object["id"]
         await proccess_clip(ctx, clip_id)
     else:
         print("Errore nel creare la clip")
         await ctx.channel.send("Mi dispiace, " + twitch_message_user + ", non è stato possibile creare la clip")
+        await send_clip_to_discord_channel("Non è stato possibile creare la clip")
 
 
 #	Thread for proccessing clip after X time
@@ -83,16 +80,30 @@ async def proccess_clip(ctx, clip_id):
 
         await ctx.channel.send("Clip di " + twitch_message_user + " " + clip_url)
         utility.write_tofile(clip_url + "\n")
+        send_clip_to_discord_channel(clip_url)
 
     else:
         await ctx.channel.send("Sorry " + twitch_message_user + ", Twitch couldn't make the clip.")
 
 
+async def send_clip_to_discord_channel(message):
+    twitch_clips_channel_id = 968465401140895794
+    await discord.wait_until_ready()
+    channel = discord.get_channel(twitch_clips_channel_id)
+    await channel.send(message)
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print("init bot")
-    bot = Bot()
-    bot.run()
+    twitch_bot = Bot()
+    discord = discord_bot.DiscordClient()
+    loop = asyncio.get_event_loop()
+    print("init discord bot")
+    loop.create_task(discord.start(TOKEN))
+    print("init twitch bot")
+    loop.create_task(twitch_bot.run())
+    loop.run_forever()
     # bot.run() is blocking and will stop execution of any below code here until stopped or closed.
     print("init bot")
 
