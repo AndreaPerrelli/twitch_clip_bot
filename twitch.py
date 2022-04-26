@@ -58,7 +58,7 @@ async def is_there_clip(clip_id):
         utility.restart()
 
     data = json.load(response)
-    utility.print_toscreen(data)
+#    utility.print_toscreen(data)
 
     try:
         result = data["data"][0]["id"]
