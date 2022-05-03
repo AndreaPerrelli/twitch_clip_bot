@@ -62,7 +62,7 @@ class Bot(commands.Bot):
     @commands.command()
     async def roll(self, ctx: commands.Context):
         if ctx.author.is_mod:
-            result = random.randint(0, sys.maxsize)
+            result = random.randint(0, 1000000)
             await ctx.channel.send('The user ' + ctx.author.name + ' rolled ' + str(result) + ' point(s)')
         else:
             print("l'utente " + ctx.author.name + " non ha i permessi per usare questo comando")
