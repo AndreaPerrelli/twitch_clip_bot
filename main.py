@@ -13,6 +13,9 @@ import utility
 import discord_bot
 import random
 
+from dateutil import parser
+
+
 twitch_message_user = ""
 temp_initial_channels = str(os.environ['CHANNEL_NAME'])
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -67,6 +70,12 @@ class Bot(commands.Bot):
         else:
             print("l'utente " + ctx.author.name + " non ha i permessi per usare questo comando")
 
+    @commands.command()
+    async def followage(self, ctx: commands.Context):
+        if ctx.channel.name == "kittenniniel":
+            message = await get_user_followage_relationship(ctx)
+            await ctx.channel.send(message)
+
 
 async def create_clip(ctx):
     channel_id = twitch.get_channel_id(temp_initial_channels)
@@ -77,9 +86,9 @@ async def create_clip(ctx):
         await process_clip(ctx, clip_id, clip_edit_url)
     else:
         print("Errore nel creare la clip")
-        #message_to_the_chat = "Mi dispiace, " + twitch_message_user + ", non è stato possibile creare la clip"
-        #message_to_discord = "Non è stato possibile creare la clip"
-        #await ctx.channel.send(message_to_the_chat)
+        # message_to_the_chat = "Mi dispiace, " + twitch_message_user + ", non è stato possibile creare la clip"
+        # message_to_discord = "Non è stato possibile creare la clip"
+        # await ctx.channel.send(message_to_the_chat)
         # await send_clip_to_discord_channel(message_to_discord)
 
 
@@ -118,11 +127,69 @@ async def process_clip(ctx, clip_id, clip_edit_url):
             else:
                 await create_clip(ctx)
 
+
 async def send_clip_to_discord_channel(message):
     twitch_clips_channel_id = int(os.environ['DISCORD_CHANNEL'])
     await discord.wait_until_ready()
     channel = discord.get_channel(twitch_clips_channel_id)
     await channel.send(message)
+
+
+async def get_user_followage_relationship(ctx):
+    from_id = twitch.get_channel_id(ctx.channel.name)
+    to_id = twitch.get_channel_id(ctx.author.name)
+    followed_at = await twitch.get_user_followage(from_id, to_id)
+
+    if followed_at != 0:
+        followed_time = parser.parse(followed_at)
+        diff = utility.getDuration(followed_time)
+        if diff.years == 0:
+            string_years = ""
+        elif diff.years == 1:
+            string_years = str(diff.years) + " anno "
+        else:
+            string_years = str(diff.years) + " anni "
+
+        if diff.months == 0:
+            string_months = ""
+        elif diff.months == 1:
+            string_months = str(diff.months) + " mese "
+        else:
+            string_months = str(diff.months) + " mesi "
+
+        if diff.days == 0:
+            string_days = ""
+        elif diff.days == 1:
+            string_days = str(diff.days) + " giorno "
+        else:
+            string_days = str(diff.days) + " giorni "
+
+        if diff.hours == 0:
+            string_hours = ""
+        elif diff.hours == 1:
+            string_hours = str(diff.hours) + " ora "
+        else:
+            string_hours = str(diff.hours) + " ore "
+
+        if diff.minutes == 0:
+            string_minutes = ""
+        elif diff.minutes == 1:
+            string_minutes = str(diff.minutes) + " minuto "
+        else:
+            string_minutes = str(diff.minutes) + " minuti "
+
+        if diff.seconds == 0:
+            string_seconds = ""
+        elif diff.seconds == 1:
+            string_seconds = str(diff.seconds) + " secondo"
+        else:
+            string_seconds = str(diff.seconds) + " secondi"
+
+        message = "@" + ctx.author.name + " ha seguito " + ctx.channel.name + " per " + string_years + string_months + string_days + string_hours + string_minutes + string_seconds
+    else:
+        message = "@" + ctx.author.name + " non segue " + ctx.channel.name
+
+    return message
 
 
 # Press the green button in the gutter to run the script.

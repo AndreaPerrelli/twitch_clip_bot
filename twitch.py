@@ -28,7 +28,7 @@ def get_channel_id(channel_name):
 
     data = response.json()
     utility.print_toscreen(data["data"][0]["id"])
-#    utility.print_toscreen(data["access_token"][0])
+    #    utility.print_toscreen(data["access_token"][0])
 
     result = "0"
 
@@ -58,7 +58,7 @@ async def is_there_clip(clip_id):
         utility.restart()
 
     data = json.load(response)
-#    utility.print_toscreen(data)
+    #    utility.print_toscreen(data)
 
     try:
         result = data["data"][0]["id"]
@@ -96,6 +96,28 @@ async def create_clip(channel_id):
     utility.print_toscreen(str(data))
 
     return data["data"][0]
+
+
+async def get_user_followage(channel_id, user_id):
+    url = "https://api.twitch.tv/helix/users/follows?from_id=" + user_id + "&to_id=" + channel_id
+    get_channel_id_headers = {'Authorization': 'Bearer ' + os.environ['CLIENT_ACCESS_TOKEN'],
+                              'Client-ID': os.environ['CLIENT_ID']}
+    utility.print_toscreen(url)
+    response = requests.get(url, headers=get_channel_id_headers)
+
+    result = 0
+
+    data = response.json()
+
+    try:
+        result = data["data"][0]["followed_at"]
+
+    except (IndexError, HTTPError, URLError) as err:
+        debug.output_error("HTTP Error: " + str(err) + debug.lineno())
+        result = 0
+        return result
+
+    return result
 
 
 def is_stream_live(channel_id):

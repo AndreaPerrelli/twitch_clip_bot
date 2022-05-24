@@ -5,6 +5,8 @@ import os
 import random
 import sys
 import time
+from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 
 from sty import fg
 
@@ -41,13 +43,13 @@ def write_tofile(text):
 
 
 def print_toscreen(text, username="", color="15"):
-    currentDT = datetime.datetime.now()
+    currentDT = datetime.now()
 
     print(currentDT.strftime("%H:%M") + "  " + text)
 
 
 def print_usertoscreen(channel, username, message):
-    currentDT = datetime.datetime.now()
+    currentDT = datetime.now()
 
     color = "15"
     if not (username == ""):
@@ -89,3 +91,11 @@ def get_user_color(username):
 #        EXCLUDE_COLORS.append(color)
 
     return color
+
+
+def getDuration(then):
+    # Returns a duration as specified by variable interval
+    # Functions, except totalDuration, returns [quotient, remainder]
+    start = datetime.now(timezone.utc)
+    diff = relativedelta(start, then)
+    return diff
