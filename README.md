@@ -8,10 +8,10 @@ Further updates of this repo will provide possibility to add your channel on a a
 
 Other comands are:
 !followage
-Returns a message in twitch chat giving info about time of followage of the user who sent the message
+Returns a message in twitch chat giving info about time of followage of the user who sent the message |||||
 !roll [number]
-Returns a random number between 0 and the number choosen by the user
+Returns a random number between 0 and the number choosen by the user ||||||
 !lolrank
-Returns info about the League of Legends rank of the streamer
+Returns info about the League of Legends rank of the streamer ||||||
 
 Stay tuned for further updates!.
