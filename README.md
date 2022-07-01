@@ -1,5 +1,4 @@
 # twitch_clip_bot
-use of twitchio library
 
 Twitch and Discord bot made to automatize clips.
 Main commands offered by the bot is the !clip command, which automatically makes a clip, post it on twitch chat and on a discord channel of your choice.
