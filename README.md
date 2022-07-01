@@ -14,4 +14,4 @@ Returns a random number between 0 and the number choosen by the user
 !lolrank
 Returns info about the League of Legends rank of the streamer
 
-Stay tuned for further updates!
+Stay tuned for further updates!.
