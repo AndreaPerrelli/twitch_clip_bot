@@ -4,9 +4,10 @@
 # bot.py
 import asyncio
 import os  # for importing env vars for the bot to use
-import sys
 
 from twitchio.ext import commands
+
+import LeagueOfLegends
 import twitch
 import time
 import utility
@@ -14,7 +15,6 @@ import discord_bot
 import random
 
 from dateutil import parser
-
 
 twitch_message_user = ""
 temp_initial_channels = str(os.environ['CHANNEL_NAME'])
@@ -63,33 +63,64 @@ class Bot(commands.Bot):
         await create_clip(ctx)
 
     @commands.command()
-    async def roll(self, ctx: commands.Context):
-        if ctx.author.is_mod:
-            result = random.randint(0, 1000000)
-            await ctx.channel.send('The user ' + ctx.author.name + ' rolled ' + str(result) + ' point(s)')
-        else:
-            print("l'utente " + ctx.author.name + " non ha i permessi per usare questo comando")
+    async def roll(self, ctx: commands.Context, arg):
+        result = random.randint(0, int(arg))
+        await ctx.channel.send('The user ' + ctx.author.name + ' rolled ' + str(result) + ' point(s)')
 
     @commands.command()
     async def followage(self, ctx: commands.Context):
-        if ctx.channel.name == "kittenniniel":
-            message = await get_user_followage_relationship(ctx)
-            await ctx.channel.send(message)
+        message = await get_user_followage_relationship(ctx)
+        await ctx.channel.send(message)
+
+    @commands.command()
+    async def lolrank(self, ctx: commands.Context):
+        summoner = LeagueOfLegends.get_summoner_by_summoner_name()
+        rank_stats = LeagueOfLegends.get_rank_by_summoner(summoner)
+        message_summmoner_stats = LeagueOfLegends.output_summoner_stats(rank_stats)
+        await ctx.channel.send(message_summmoner_stats)
+
+    async def event_usernotice_subscription(self, metadata):
+        channel = metadata.channel
+        if channel.name == "niniel_tv":
+            user_name = metadata.user.name
+            months = metadata.cumulative_months
+            if months == 1:
+                months_message = "1 mese!"
+            else:
+                months_message = f"{months} mesi!"
+            if months_message != "":
+                message_for_subs = f"Grazie per la sub @{user_name}! Hai supportato il canale per {months_message}! Per ricevere il link per il gruppo telegram dedicato usa !sub in chat"
+            else:
+                message_for_subs = f"Grazie per la sub @{user_name}! Per ricevere il link per il gruppo telegram dedicato usa !sub in chat"
+            await channel.send(message_for_subs)
+
+
+    # @commands.command()
+    # async def quack(self, ctx: commands.Context):
+    #     if ctx.channel.name == "kittenniniel":
+    #         niniel_telegram_link = "https://t.me/+d4TXs3A4Vn84ZTg0"
+    #         message_for_subs = "Ciao! ecco a te il link per unirti al nostro gruppo telegram solo per sub! uwu " + niniel_telegram_link
+    #         if ctx.author.is_subscriber:
+    #             await ctx.author.send(message_for_subs)
 
 
 async def create_clip(ctx):
     channel_id = twitch.get_channel_id(temp_initial_channels)
-    clip_object = await twitch.create_clip(channel_id)
-    if clip_object != 0:
-        clip_id = clip_object["id"]
-        clip_edit_url = clip_object["edit_url"]
-        await process_clip(ctx, clip_id, clip_edit_url)
+    error_message_to_the_chat = "Non è possibile creare la clip poichè il canale è offline."
+    if twitch.is_stream_live(channel_id):
+        clip_object = await twitch.create_clip(channel_id)
+        if clip_object != 0:
+            clip_id = clip_object["id"]
+            clip_edit_url = clip_object["edit_url"]
+            await process_clip(ctx, clip_id, clip_edit_url)
+        else:
+            print("Errore nel creare la clip")
+            # message_to_the_chat = "Mi dispiace, " + twitch_message_user + ", non è stato possibile creare la clip"
+            # message_to_discord = "Non è stato possibile creare la clip"
+            # await ctx.channel.send(message_to_the_chat)
+            # await send_clip_to_discord_channel(message_to_discord)
     else:
-        print("Errore nel creare la clip")
-        # message_to_the_chat = "Mi dispiace, " + twitch_message_user + ", non è stato possibile creare la clip"
-        # message_to_discord = "Non è stato possibile creare la clip"
-        # await ctx.channel.send(message_to_the_chat)
-        # await send_clip_to_discord_channel(message_to_discord)
+        await ctx.channel.send(error_message_to_the_chat)
 
 
 #	Thread for proccessing clip after X time
@@ -192,7 +223,6 @@ async def get_user_followage_relationship(ctx):
     return message
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print("init bot")
     twitch_bot = Bot()
@@ -206,4 +236,3 @@ if __name__ == '__main__':
     # bot.run() is blocking and will stop execution of any below code here until stopped or closed.
     print("init bot")
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
